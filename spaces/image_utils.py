@@ -2,26 +2,26 @@ import io, pathlib
 from PIL import Image, ExifTags
 from django.core.files.base import ContentFile
 
-MAX_W    = 1600        
-QUALITY  = 90            
+QUALITY = 90  # JPEG quality
+
 
 def compress_in_memory(upload):
-    """Return a fresh Django ContentFile (<bytes>, name) ready for model save."""
+    """Return a fresh Django ContentFile ( <bytes>, name ) ready for model save.
+    ➤ Keeps original resolution (no down‑scaling) ‑ just orientation fix + JPEG recompress.
+    """
     img = Image.open(upload)
 
+    # --- Fix orientation from EXIF ---
     try:
         orient_key = next(k for k, v in ExifTags.TAGS.items() if v == "Orientation")
         orient = img._getexif().get(orient_key, 1) if img._getexif() else 1
-        if orient == 3:  img = img.rotate(180, expand=True)
-        elif orient == 6: img = img.rotate(270, expand=True)
-        elif orient == 8: img = img.rotate( 90, expand=True)
+        rotations = {3: 180, 6: 270, 8: 90}
+        if orient in rotations:
+            img = img.rotate(rotations[orient], expand=True)
     except Exception:
         pass
 
-    if img.width > MAX_W:
-        ratio = MAX_W / img.width
-        img = img.resize((MAX_W, int(img.height * ratio)), Image.LANCZOS)
-
+    # --- Convert & save ---
     buf = io.BytesIO()
     img.convert("RGB").save(buf, "JPEG", quality=QUALITY, optimize=True)
     buf.seek(0)
