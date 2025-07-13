@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions
-from .models import Post, EventSpace, Comment, DonationFund
+from .models import Post, EventSpace, Comment, DonationFund, Like
 from .serializers import PostSerializer, EventSpaceSerializer, UserSerializer, UserUpdateSerializer, PostCommentSerializer, DonationFundSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
@@ -121,6 +121,27 @@ class UpdateUserView(APIView):
             serializer.save()
             return Response(UserSerializer(request.user).data, status=200)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class LikeToggleView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, post_id):
+        user = request.user
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({'error': 'Post not found'}, status=404)
+
+        like, created = Like.objects.get_or_create(user=user, post=post)
+        if not created:
+            like.delete()
+            post.like_count = max(post.like_count - 1, 0)
+            post.save()
+            return Response({'liked': False, 'like_count': post.like_count})
+
+        post.like_count += 1
+        post.save()
+        return Response({'liked': True, 'like_count': post.like_count})
     
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all().order_by('-created_at')
