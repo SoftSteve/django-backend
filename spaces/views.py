@@ -36,6 +36,24 @@ class EventSpaceLookupView(APIView):
             return Response({'event_id': space.id})
         except EventSpace.DoesNotExist:
             return Response({'error': 'Space not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+class EventSpacePreviewView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        code = request.query_params.get('code')
+        if not code:
+            return Response({'error': 'No space code provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            space = EventSpace.objects.get(Q(space_code__iexact=code))
+            return Response({
+                'event_id': space.id,
+                'name': space.name,
+                'cover_image': space.cover_image.url if space.cover_image else None
+            })
+        except EventSpace.DoesNotExist:
+            return Response({'error': 'Space not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['GET'])
