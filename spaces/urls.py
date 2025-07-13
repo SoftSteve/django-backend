@@ -9,7 +9,7 @@ urlpatterns = [
     path('csrf/', get_csrf_token),
     path('auth/session/', UserSessionView.as_view()),
     path('space-lookup/', EventSpaceLookupView.as_view()),
-    path('publicspace-lookup/', EventSpacePreviewView.as_view()),
+    path('space-preview/', EventSpacePreviewView.as_view()),
     path('auth/create-account/', CreateAccountView.as_view()),
     path('auth/update-account/', UpdateUserView.as_view()),
     
