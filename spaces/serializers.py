@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Post, PostImage, EventSpace, User, Comment, DonationFund
+from .models import Post, PostImage, EventSpace, User, Comment, DonationFund, Like
 from .image_utils import compress_in_memory 
 
 MAX_IMAGES_PER_POST = 8
@@ -44,16 +44,22 @@ class PostCommentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PostSerializer(serializers.ModelSerializer):
-    author      = UserSerializer(read_only=True)
-    created_at  = serializers.DateTimeField(format='%h %d - %I:%M %p', read_only=True)
-    images      = PostImageSerializer(many=True, read_only=True)
-    comments    = PostCommentSerializer(many=True, read_only=True)
+    author = UserSerializer(read_only=True)
+    created_at = serializers.DateTimeField(format='%h %d - %I:%M %p', read_only=True)
+    images = PostImageSerializer(many=True, read_only=True)
+    comments = PostCommentSerializer(many=True, read_only=True)
+    liked = serializers.SerializerMethodField()
 
     class Meta:
         model  = Post
-        fields = '__all__'
+        fields = [
+            'id', 'caption', 'author', 'created_at', 'images',
+            'comments', 'liked', 'like_count', 'event_space',
+        ]
 
-    
+    def get_liked(self, obj):
+        user = self.context['request'].user
+        return obj.likes.filter(user=user).exists()
 
     def create(self, validated_data):
         request = self.context["request"]
