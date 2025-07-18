@@ -17,7 +17,7 @@ from django.http import JsonResponse
 from django.db.models import Q
 from rest_framework.decorators import api_view, permission_classes
 from .permissions import IsAuthorOrReadOnly
-from .pagination  import StandardLimitOffsetPagination, GalleryLimitOffsetPagination
+from .pagination  import StandardLimitOffsetPagination
 
 User = get_user_model()
 
