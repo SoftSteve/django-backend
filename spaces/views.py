@@ -160,7 +160,7 @@ class PostViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['event_space']
     permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
-    pagination_class = GalleryLimitOffsetPagination
+    pagination_class = StandardLimitOffsetPagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -174,7 +174,7 @@ class GalleryImageViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = GalleryImageSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['post__event_space']
-    pagination_class = StandardLimitOffsetPagination
+    pagination_class = GalleryLimitOffsetPagination
     permission_classes = [IsAuthenticated]
    
 class DonationFundViewSet(viewsets.ModelViewSet):
