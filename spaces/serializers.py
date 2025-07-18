@@ -79,9 +79,6 @@ class PostSerializer(serializers.ModelSerializer):
             )
 
         return post
-    
-
-
 
 class DonationFundSerializer(serializers.ModelSerializer):
     card_cover_image = serializers.SerializerMethodField()
@@ -104,12 +101,6 @@ class DonationFundSerializer(serializers.ModelSerializer):
             request = self.context.get('request')
             return request.build_absolute_uri(url) if request else url
         return None
-
-
-class GalleryImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PostImage
-        fields = ['id', 'original_image', 'post']
 
 
 class EventSpaceSerializer(serializers.ModelSerializer):

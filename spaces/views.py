@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions
-from .models import Post, EventSpace, Comment, DonationFund, Like, PostImage
-from .serializers import PostSerializer, EventSpaceSerializer, UserSerializer, UserUpdateSerializer, PostCommentSerializer, DonationFundSerializer, GalleryImageSerializer
+from .models import Post, EventSpace, Comment, DonationFund, Like
+from .serializers import PostSerializer, EventSpaceSerializer, UserSerializer, UserUpdateSerializer, PostCommentSerializer, DonationFundSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -167,15 +167,6 @@ class PostViewSet(viewsets.ModelViewSet):
     
     def perform_destroy(self, instance):
         return instance.delete()
-    
-
-class GalleryImageViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = PostImage.objects.select_related('post').order_by('-created_at')
-    serializer_class = GalleryImageSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['post__event_space']
-    pagination_class = GalleryLimitOffsetPagination
-    permission_classes = [IsAuthenticated]
    
 class DonationFundViewSet(viewsets.ModelViewSet):
     queryset = DonationFund.objects.all().order_by('-created_at')
