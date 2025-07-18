@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions
-from .models import Post, EventSpace, Comment, DonationFund, Like
-from .serializers import PostSerializer, EventSpaceSerializer, UserSerializer, UserUpdateSerializer, PostCommentSerializer, DonationFundSerializer
+from .models import Post, EventSpace, Comment, DonationFund, Like, PostImage
+from .serializers import PostSerializer, EventSpaceSerializer, UserSerializer, UserUpdateSerializer, PostCommentSerializer, DonationFundSerializer, GalleryImageSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -17,7 +17,7 @@ from django.http import JsonResponse
 from django.db.models import Q
 from rest_framework.decorators import api_view, permission_classes
 from .permissions import IsAuthorOrReadOnly
-from .pagination  import StandardLimitOffsetPagination
+from .pagination  import StandardLimitOffsetPagination, GalleryLimitOffsetPagination
 
 User = get_user_model()
 
@@ -160,7 +160,7 @@ class PostViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['event_space']
     permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
-    pagination_class = StandardLimitOffsetPagination
+    pagination_class = GalleryLimitOffsetPagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -168,6 +168,15 @@ class PostViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         return instance.delete()
     
+
+class GalleryImageViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = PostImage.objects.select_related('post').order_by('-created_at')
+    serializer_class = GalleryImageSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['post__event_space']
+    pagination_class = StandardLimitOffsetPagination
+    permission_classes = [IsAuthenticated]
+   
 class DonationFundViewSet(viewsets.ModelViewSet):
     queryset = DonationFund.objects.all().order_by('-created_at')
     serializer_class = DonationFundSerializer
@@ -175,7 +184,6 @@ class DonationFundViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        # Optional: limit funds to spaces user can access (creator or member)
         return DonationFund.objects.filter(
             event_space__in=EventSpace.objects.filter(creator=user) | EventSpace.objects.filter(members=user)
         ).distinct()
